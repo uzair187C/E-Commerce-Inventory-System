@@ -152,7 +152,31 @@ void updateStock(int id, int newQty) {
     cout << "Stock updated successfully!" << endl;
 }
 
+// ------------------------
+// File Handling
+// ------------------------
+void saveToFile(string filename) {
+    ofstream file(filename);
+    for (auto &pair : productMap) {
+        Product* p = pair.second;
+        file << p->id << " " << p->name << " " << p->quantity << " " << p->price << endl;
+    }
+    file.close();
+    cout << "Data saved to " << filename << endl;
+}
 
+void loadFromFile(string filename) {
+    ifstream file(filename);
+    if (!file.is_open()) return;
+    
+ int id, qty;
+    float price;
+    string name;
+    while (file >> id >> name >> qty >> price) {
+        addProduct(id, name, qty, price);
+    }
+    file.close();
+}
 
 
 
