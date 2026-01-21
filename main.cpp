@@ -121,6 +121,36 @@ void displayLowStock() {
     }
 }
 
+// ------------------------
+// Search by ID
+// ------------------------
+void searchProduct(int id) {
+    if (productMap.find(id) != productMap.end()) {
+        Product* p = productMap[id];
+        cout << "Found Product -> "
+             << "ID: " << p->id
+             << " | Name: " << p->name
+             << " | Qty: " << p->quantity
+             << " | Price: " << p->price << endl;
+    } else cout << "Product not found!" << endl;
+}
+// ------------------------
+// Update Stock
+// ------------------------
+void updateStock(int id, int newQty) {
+    if (productMap.find(id) == productMap.end()) {
+        cout << "Product not found!" << endl;
+        return;
+    }
+
+    Product* p = productMap[id];
+    p->quantity = newQty;
+
+    // Update low stock linked list
+    if (newQty < 5) addToLowStock(p);
+
+    cout << "Stock updated successfully!" << endl;
+}
 
 
 
