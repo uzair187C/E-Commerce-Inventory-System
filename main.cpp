@@ -177,6 +177,45 @@ void loadFromFile(string filename) {
     }
     file.close();
 }
+// ------------------------
+// Menu UI
+// ------------------------
+void menu() {
+    int choice;
+    do {
+        cout << "\n===== INVENTORY SYSTEM =====\n";
+        cout << "1. Add Product\n2. View Sorted Inventory\n3. View Low Stock\n";
+        cout << "4. Search Product by ID\n5. Update Stock\n6. Save & Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        int id, qty;
+        string name;
+        float price;
+
+        switch(choice) {
+            case 1:
+                cout << "Enter ID Name Quantity Price: ";
+                cin >> id >> name >> qty >> price;
+                addProduct(id, name, qty, price);
+                break;
+            case 2: viewSortedProducts(); break;
+            case 3: displayLowStock(); break;
+            case 4:
+                cout << "Enter Product ID to search: "; cin >> id;
+                searchProduct(id);
+                break;
+            case 5:
+                cout << "Enter Product ID and new Quantity: "; cin >> id >> qty;
+                updateStock(id, qty);
+                break;
+            case 6:
+                saveToFile("inventory.txt");
+                cout << "Exiting...\n"; break;
+            default: cout << "Invalid choice!\n";
+        }
+    } while (choice != 6);
+}
 
 
 
@@ -205,6 +244,8 @@ int main() {
     addProduct(103, "Keyboard", 2, 3000); // low-stock too
 
     cout << "Total products in hash map: " << productMap.size() << endl;
+     loadFromFile("inventory.txt");
+    menu();
 
     return 0;
 }
