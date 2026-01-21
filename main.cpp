@@ -106,6 +106,20 @@ void viewSortedProducts() {
     inorderBST(bstRoot);
 }
 
+void displayLowStock() {
+    if (!lowStockHead) {
+        cout << "No low stock products!" << endl;
+        return;
+    }
+    cout << "===== Low Stock Products =====" << endl;
+    ListNode* temp = lowStockHead;
+    while (temp) {
+        cout << "ID: " << temp->product->id
+             << " | Name: " << temp->product->name
+             << " | Qty: " << temp->product->quantity << endl;
+        temp = temp->next;
+    }
+}
 
 
 
