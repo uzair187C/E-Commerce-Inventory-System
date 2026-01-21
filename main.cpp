@@ -81,7 +81,56 @@ void addProduct(int id, string name, int qty, float price) {
     if (qty < 5) addToLowStock(p);  // low stock linked list
 
     cout << "Product added successfully!" << endl;
+} 
+
+// ------------------------
+// In-order BST Traversal
+// ------------------------
+void inorderBST(BSTNode* root) {
+    if (!root) return;
+    inorderBST(root->left);
+    cout << "ID: " << root->product->id
+         << " | Name: " << root->product->name
+         << " | Qty: " << root->product->quantity
+         << " | Price: " << root->product->price << endl;
+    inorderBST(root->right);
 }
+
+// Helper function to call
+void viewSortedProducts() {
+    if (!bstRoot) {
+        cout << "No products available!" << endl;
+        return;
+    }
+    cout << "===== Sorted Inventory =====" << endl;
+    inorderBST(bstRoot);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 int main() {
     addProduct(101, "Laptop", 10, 120000);
     addProduct(102, "Mouse", 3, 1500); // will appear in low-stock
