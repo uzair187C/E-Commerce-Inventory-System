@@ -1,6 +1,9 @@
 #include <iostream>
 #include <unordered_map>
 #include <string>
+
+#include <fstream>
+
 using namespace std;
 
 // ------------------------
@@ -195,10 +198,17 @@ void menu() {
 
         switch(choice) {
             case 1:
-                cout << "Enter ID Name Quantity Price: ";
-                cin >> id >> name >> qty >> price;
-                addProduct(id, name, qty, price);
-                break;
+    cout << "Enter ID Name Quantity Price (space separated): ";
+    cin >> id >> name >> qty >> price;
+    if(cin.fail()) {
+        cin.clear();
+        cin.ignore(10000, '\n');
+        cout << "Invalid input! Use spaces only.\n";
+        break;
+    }
+    addProduct(id, name, qty, price);
+    break;
+
             case 2: viewSortedProducts(); break;
             case 3: displayLowStock(); break;
             case 4:
@@ -217,36 +227,19 @@ void menu() {
     } while (choice != 6);
 }
 
+   int main() {
+    loadFromFile("inventory.txt"); // load saved products first
 
+    // Optional: add test products if file is empty
+    if (productMap.empty()) {
+        addProduct(101, "Laptop", 10, 120000);
+        addProduct(102, "Mouse", 3, 1500);
+        addProduct(103, "Keyboard", 2, 3000);
+    }
 
+    cout << "Total products in inventory: " << productMap.size() << endl;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-int main() {
-    addProduct(101, "Laptop", 10, 120000);
-    addProduct(102, "Mouse", 3, 1500); // will appear in low-stock
-    addProduct(103, "Keyboard", 2, 3000); // low-stock too
-
-    cout << "Total products in hash map: " << productMap.size() << endl;
-     loadFromFile("inventory.txt");
     menu();
-
     return 0;
 }
 
