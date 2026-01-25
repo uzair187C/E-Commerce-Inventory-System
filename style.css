@@ -1,0 +1,35 @@
+body {
+  font-family: Arial;
+  background: #f0f2f5;
+  padding: 30px;
+}
+
+h1 {
+  color: #222;
+}
+
+.panel {
+  background: white;
+  padding: 20px;
+  border-radius: 6px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background: #222;
+  color: white;
+}
+
+.note {
+  margin-top: 15px;
+  color: #666;
+}
