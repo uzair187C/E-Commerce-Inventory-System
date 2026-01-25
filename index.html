@@ -1,26 +1,140 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Admin Dashboard</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>Admin Inventory Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root {
+  --bg: #0f172a;
+  --card: #020617;
+  --accent: #38bdf8;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --text: #e5e7eb;
+  --muted: #94a3b8;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'Segoe UI', system-ui;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+header {
+  padding: 20px;
+  background: linear-gradient(135deg, #020617, #020617cc);
+  text-align: center;
+  border-bottom: 1px solid #1e293b;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 26px;
+  letter-spacing: 1px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.card h2 {
+  margin-top: 0;
+  color: var(--accent);
+}
+
+input, button, select {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+}
+
+input {
+  background: #020617;
+  color: var(--text);
+  border: 1px solid #1e293b;
+}
+
+button {
+  cursor: pointer;
+  background: var(--accent);
+  color: black;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid #1e293b;
+  text-align: left;
+}
+
+th {
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.low {
+  background: var(--danger);
+}
+
+.ok {
+  background: var(--success);
+}
+
+.actions button {
+  margin-right: 5px;
+}
+
+.search {
+  margin-bottom: 10px;
+}
+
+footer {
+  text-align: center;
+  padding: 15px;
+  color: var(--muted);
+  font-size: 13px;
+}
+</style>
 </head>
+
 <body>
 
-<h1>🛠 Inventory Admin Panel</h1>
-
-<div class="panel">
-  <h2>Current Inventory</h2>
-  <table id="table">
-    <tr>
-      <th>ID</th><th>Name</th><th>Qty</th><th>Price</th>
-    </tr>
-  </table>
-</div>
-
-<p class="note">
-⚠️ Inventory updates automatically when C++ backend saves data
-</p>
-
-<script src="script.js"></script>
-</body>
-</html>
+<header>
+  <h1>🛒 Admin Inventory Management System</h1>
+  <p>DSA Powered • BS
