@@ -1,140 +1,246 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Admin Inventory Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+#include <iostream>
+#include <unordered_map>
+#include <string>
 
-<style>
-:root {
-  --bg: #0f172a;
-  --card: #020617;
-  --accent: #38bdf8;
-  --danger: #ef4444;
-  --success: #22c55e;
-  --text: #e5e7eb;
-  --muted: #94a3b8;
+#include <fstream>
+
+using namespace std;
+
+// ------------------------
+// Product Structure
+// ------------------------
+struct Product {
+    int id;
+    string name;
+    int quantity;
+    float price;
+};
+
+// ------------------------
+// Linked List Node (for Low Stock / Cart)
+// ------------------------
+struct ListNode {
+    Product* product;
+    ListNode* next;
+    ListNode(Product* p) : product(p), next(nullptr) {}
+};
+
+// ------------------------
+// BST Node (for sorted inventory)
+// ------------------------
+struct BSTNode {
+    Product* product;
+    BSTNode* left;
+    BSTNode* right;
+    BSTNode(Product* p) : product(p), left(nullptr), right(nullptr) {}
+};
+
+// ------------------------
+// Inventory Containers
+// ------------------------
+unordered_map<int, Product*> productMap; // fast lookup by ID
+BSTNode* bstRoot = nullptr;              // sorted products
+ListNode* lowStockHead = nullptr;        // linked list for low stock
+
+
+
+
+
+
+
+
+// ---------------------
+// ------------------------
+// Linked List Helper
+// ------------------------
+void addToLowStock(Product* p) {
+    ListNode* newNode = new ListNode(p);
+    newNode->next = lowStockHead;
+    lowStockHead = newNode;
 }
 
-* {
-  box-sizing: border-box;
-  font-family: 'Segoe UI', system-ui;
+// ------------------------
+// BST Helper: Insert
+// ------------------------
+BSTNode* insertBST(BSTNode* root, Product* p) {
+    if (!root) return new BSTNode(p);
+    if (p->name < root->product->name) root->left = insertBST(root->left, p);
+    else root->right = insertBST(root->right, p);
+    return root;
 }
 
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
+// ------------------------
+// Add Product
+// ------------------------
+void addProduct(int id, string name, int qty, float price) {
+    if (productMap.find(id) != productMap.end()) {
+        cout << "Product ID already exists!" << endl;
+        return;
+    }
+
+    Product* p = new Product{id, name, qty, price};
+    productMap[id] = p;           // fast lookup
+    bstRoot = insertBST(bstRoot, p); // sorted BST
+    if (qty < 5) addToLowStock(p);  // low stock linked list
+
+    cout << "Product added successfully!" << endl;
+} 
+
+// ------------------------
+// In-order BST Traversal
+// ------------------------
+void inorderBST(BSTNode* root) {
+    if (!root) return;
+    inorderBST(root->left);
+    cout << "ID: " << root->product->id
+         << " | Name: " << root->product->name
+         << " | Qty: " << root->product->quantity
+         << " | Price: " << root->product->price << endl;
+    inorderBST(root->right);
 }
 
-header {
-  padding: 20px;
-  background: linear-gradient(135deg, #020617, #020617cc);
-  text-align: center;
-  border-bottom: 1px solid #1e293b;
+// Helper function to call
+void viewSortedProducts() {
+    if (!bstRoot) {
+        cout << "No products available!" << endl;
+        return;
+    }
+    cout << "===== Sorted Inventory =====" << endl;
+    inorderBST(bstRoot);
 }
 
-header h1 {
-  margin: 0;
-  font-size: 26px;
-  letter-spacing: 1px;
+void displayLowStock() {
+    if (!lowStockHead) {
+        cout << "No low stock products!" << endl;
+        return;
+    }
+    cout << "===== Low Stock Products =====" << endl;
+    ListNode* temp = lowStockHead;
+    while (temp) {
+        cout << "ID: " << temp->product->id
+             << " | Name: " << temp->product->name
+             << " | Qty: " << temp->product->quantity << endl;
+        temp = temp->next;
+    }
 }
 
-.container {
-  max-width: 1200px;
-  margin: auto;
-  padding: 20px;
+// ------------------------
+// Search by ID
+// ------------------------
+void searchProduct(int id) {
+    if (productMap.find(id) != productMap.end()) {
+        Product* p = productMap[id];
+        cout << "Found Product -> "
+             << "ID: " << p->id
+             << " | Name: " << p->name
+             << " | Qty: " << p->quantity
+             << " | Price: " << p->price << endl;
+    } else cout << "Product not found!" << endl;
+}
+// ------------------------
+// Update Stock
+// ------------------------
+void updateStock(int id, int newQty) {
+    if (productMap.find(id) == productMap.end()) {
+        cout << "Product not found!" << endl;
+        return;
+    }
+
+    Product* p = productMap[id];
+    p->quantity = newQty;
+
+    // Update low stock linked list
+    if (newQty < 5) addToLowStock(p);
+
+    cout << "Stock updated successfully!" << endl;
 }
 
-.card {
-  background: var(--card);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+// ------------------------
+// File Handling
+// ------------------------
+void saveToFile(string filename) {
+    ofstream file(filename);
+    for (auto &pair : productMap) {
+        Product* p = pair.second;
+        file << p->id << " " << p->name << " " << p->quantity << " " << p->price << endl;
+    }
+    file.close();
+    cout << "Data saved to " << filename << endl;
 }
 
-.card h2 {
-  margin-top: 0;
-  color: var(--accent);
+void loadFromFile(string filename) {
+    ifstream file(filename);
+    if (!file.is_open()) return;
+    
+ int id, qty;
+    float price;
+    string name;
+    while (file >> id >> name >> qty >> price) {
+        addProduct(id, name, qty, price);
+    }
+    file.close();
+}
+// ------------------------
+// Menu UI
+// ------------------------
+void menu() {
+    int choice;
+    do {
+        cout << "\n===== INVENTORY SYSTEM =====\n";
+        cout << "1. Add Product\n2. View Sorted Inventory\n3. View Low Stock\n";
+        cout << "4. Search Product by ID\n5. Update Stock\n6. Save & Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        int id, qty;
+        string name;
+        float price;
+
+        switch(choice) {
+            case 1:
+    cout << "Enter ID Name Quantity Price (space separated): ";
+    cin >> id >> name >> qty >> price;
+    if(cin.fail()) {
+        cin.clear();
+        cin.ignore(10000, '\n');
+        cout << "Invalid input! Use spaces only.\n";
+        break;
+    }
+    addProduct(id, name, qty, price);
+    break;
+
+            case 2: viewSortedProducts(); break;
+            case 3: displayLowStock(); break;
+            case 4:
+                cout << "Enter Product ID to search: "; cin >> id;
+                searchProduct(id);
+                break;
+            case 5:
+                cout << "Enter Product ID and new Quantity: "; cin >> id >> qty;
+                updateStock(id, qty);
+                break;
+            case 6:
+                saveToFile("inventory.txt");
+                cout << "Exiting...\n"; break;
+            default: cout << "Invalid choice!\n";
+        }
+    } while (choice != 6);
 }
 
-input, button, select {
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  outline: none;
-  font-size: 14px;
+   int main() {
+    loadFromFile("inventory.txt"); // load saved products first
+
+    // Optional: add test products if file is empty
+    if (productMap.empty()) {
+        addProduct(101, "Laptop", 10, 120000);
+        addProduct(102, "Mouse", 3, 1500);
+        addProduct(103, "Keyboard", 2, 3000);
+    }
+
+    cout << "Total products in inventory: " << productMap.size() << endl;
+
+    menu();
+    return 0;
 }
 
-input {
-  background: #020617;
-  color: var(--text);
-  border: 1px solid #1e293b;
-}
 
-button {
-  cursor: pointer;
-  background: var(--accent);
-  color: black;
-  font-weight: 600;
-  transition: 0.2s;
-}
-
-button:hover {
-  transform: translateY(-1px);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-th, td {
-  padding: 12px;
-  border-bottom: 1px solid #1e293b;
-  text-align: left;
-}
-
-th {
-  color: var(--muted);
-  cursor: pointer;
-}
-
-.badge {
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 12px;
-}
-
-.low {
-  background: var(--danger);
-}
-
-.ok {
-  background: var(--success);
-}
-
-.actions button {
-  margin-right: 5px;
-}
-
-.search {
-  margin-bottom: 10px;
-}
-
-footer {
-  text-align: center;
-  padding: 15px;
-  color: var(--muted);
-  font-size: 13px;
-}
-</style>
-</head>
-
-<body>
-
-<header>
-  <h1>🛒 Admin Inventory Management System</h1>
-  <p>DSA Powered • BS
