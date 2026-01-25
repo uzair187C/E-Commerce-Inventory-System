@@ -154,6 +154,7 @@ void updateStock(int id, int newQty) {
 
     cout << "Stock updated successfully!" << endl;
 }
+saveToJSON("inventory.json");
 
 // ------------------------
 // File Handling
@@ -166,6 +167,27 @@ void saveToFile(string filename) {
     }
     file.close();
     cout << "Data saved to " << filename << endl;
+}
+//- for data upgradation -->> 
+void saveToJSON(string filename) {
+    ofstream file(filename);
+    file << "[\n";
+    bool first = true;
+
+    for (auto &pair : productMap) {
+        Product* p = pair.second;
+        if (!first) file << ",\n";
+        first = false;
+
+        file << "  {"
+             << "\"id\": " << p->id << ", "
+             << "\"name\": \"" << p->name << "\", "
+             << "\"quantity\": " << p->quantity << ", "
+             << "\"price\": " << p->price
+             << "}";
+    }
+    file << "\n]";
+    file.close();
 }
 
 void loadFromFile(string filename) {
@@ -220,8 +242,12 @@ void menu() {
                 updateStock(id, qty);
                 break;
             case 6:
-                saveToFile("inventory.txt");
-                cout << "Exiting...\n"; break;
+               case 6:
+    saveToFile("inventory.txt");
+    saveToJSON("inventory.json");
+    cout << "Saved & Exiting...\n";
+    break;
+
             default: cout << "Invalid choice!\n";
         }
     } while (choice != 6);
