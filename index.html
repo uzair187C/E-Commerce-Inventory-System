@@ -1,246 +1,294 @@
-#include <iostream>
-#include <unordered_map>
-#include <string>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Inventory Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-#include <fstream>
-
-using namespace std;
-
-// ------------------------
-// Product Structure
-// ------------------------
-struct Product {
-    int id;
-    string name;
-    int quantity;
-    float price;
-};
-
-// ------------------------
-// Linked List Node (for Low Stock / Cart)
-// ------------------------
-struct ListNode {
-    Product* product;
-    ListNode* next;
-    ListNode(Product* p) : product(p), next(nullptr) {}
-};
-
-// ------------------------
-// BST Node (for sorted inventory)
-// ------------------------
-struct BSTNode {
-    Product* product;
-    BSTNode* left;
-    BSTNode* right;
-    BSTNode(Product* p) : product(p), left(nullptr), right(nullptr) {}
-};
-
-// ------------------------
-// Inventory Containers
-// ------------------------
-unordered_map<int, Product*> productMap; // fast lookup by ID
-BSTNode* bstRoot = nullptr;              // sorted products
-ListNode* lowStockHead = nullptr;        // linked list for low stock
-
-
-
-
-
-
-
-
-// ---------------------
-// ------------------------
-// Linked List Helper
-// ------------------------
-void addToLowStock(Product* p) {
-    ListNode* newNode = new ListNode(p);
-    newNode->next = lowStockHead;
-    lowStockHead = newNode;
+<style>
+:root {
+    --bg: #0f172a;
+    --panel: #111827;
+    --card: #1f2933;
+    --accent: #3b82f6;
+    --danger: #ef4444;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
 }
 
-// ------------------------
-// BST Helper: Insert
-// ------------------------
-BSTNode* insertBST(BSTNode* root, Product* p) {
-    if (!root) return new BSTNode(p);
-    if (p->name < root->product->name) root->left = insertBST(root->left, p);
-    else root->right = insertBST(root->right, p);
-    return root;
+* {
+    box-sizing: border-box;
+    font-family: "Segoe UI", system-ui, sans-serif;
 }
 
-// ------------------------
-// Add Product
-// ------------------------
-void addProduct(int id, string name, int qty, float price) {
-    if (productMap.find(id) != productMap.end()) {
-        cout << "Product ID already exists!" << endl;
-        return;
-    }
-
-    Product* p = new Product{id, name, qty, price};
-    productMap[id] = p;           // fast lookup
-    bstRoot = insertBST(bstRoot, p); // sorted BST
-    if (qty < 5) addToLowStock(p);  // low stock linked list
-
-    cout << "Product added successfully!" << endl;
-} 
-
-// ------------------------
-// In-order BST Traversal
-// ------------------------
-void inorderBST(BSTNode* root) {
-    if (!root) return;
-    inorderBST(root->left);
-    cout << "ID: " << root->product->id
-         << " | Name: " << root->product->name
-         << " | Qty: " << root->product->quantity
-         << " | Price: " << root->product->price << endl;
-    inorderBST(root->right);
+body {
+    margin: 0;
+    background: linear-gradient(135deg, #020617, #0f172a);
+    color: var(--text);
 }
 
-// Helper function to call
-void viewSortedProducts() {
-    if (!bstRoot) {
-        cout << "No products available!" << endl;
-        return;
-    }
-    cout << "===== Sorted Inventory =====" << endl;
-    inorderBST(bstRoot);
+/* Layout */
+.dashboard {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
 }
 
-void displayLowStock() {
-    if (!lowStockHead) {
-        cout << "No low stock products!" << endl;
-        return;
-    }
-    cout << "===== Low Stock Products =====" << endl;
-    ListNode* temp = lowStockHead;
-    while (temp) {
-        cout << "ID: " << temp->product->id
-             << " | Name: " << temp->product->name
-             << " | Qty: " << temp->product->quantity << endl;
-        temp = temp->next;
-    }
+.sidebar {
+    background: var(--panel);
+    padding: 24px;
+    border-right: 1px solid #1f2937;
 }
 
-// ------------------------
-// Search by ID
-// ------------------------
-void searchProduct(int id) {
-    if (productMap.find(id) != productMap.end()) {
-        Product* p = productMap[id];
-        cout << "Found Product -> "
-             << "ID: " << p->id
-             << " | Name: " << p->name
-             << " | Qty: " << p->quantity
-             << " | Price: " << p->price << endl;
-    } else cout << "Product not found!" << endl;
-}
-// ------------------------
-// Update Stock
-// ------------------------
-void updateStock(int id, int newQty) {
-    if (productMap.find(id) == productMap.end()) {
-        cout << "Product not found!" << endl;
-        return;
-    }
-
-    Product* p = productMap[id];
-    p->quantity = newQty;
-
-    // Update low stock linked list
-    if (newQty < 5) addToLowStock(p);
-
-    cout << "Stock updated successfully!" << endl;
+.sidebar h1 {
+    font-size: 1.4rem;
+    margin-bottom: 32px;
 }
 
-// ------------------------
-// File Handling
-// ------------------------
-void saveToFile(string filename) {
-    ofstream file(filename);
-    for (auto &pair : productMap) {
-        Product* p = pair.second;
-        file << p->id << " " << p->name << " " << p->quantity << " " << p->price << endl;
-    }
-    file.close();
-    cout << "Data saved to " << filename << endl;
+.sidebar button {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 12px;
+    border: none;
+    background: var(--card);
+    color: var(--text);
+    font-size: 0.95rem;
+    cursor: pointer;
+    border-radius: 6px;
 }
 
-void loadFromFile(string filename) {
-    ifstream file(filename);
-    if (!file.is_open()) return;
-    
- int id, qty;
-    float price;
-    string name;
-    while (file >> id >> name >> qty >> price) {
-        addProduct(id, name, qty, price);
-    }
-    file.close();
-}
-// ------------------------
-// Menu UI
-// ------------------------
-void menu() {
-    int choice;
-    do {
-        cout << "\n===== INVENTORY SYSTEM =====\n";
-        cout << "1. Add Product\n2. View Sorted Inventory\n3. View Low Stock\n";
-        cout << "4. Search Product by ID\n5. Update Stock\n6. Save & Exit\n";
-        cout << "Enter choice: ";
-        cin >> choice;
-
-        int id, qty;
-        string name;
-        float price;
-
-        switch(choice) {
-            case 1:
-    cout << "Enter ID Name Quantity Price (space separated): ";
-    cin >> id >> name >> qty >> price;
-    if(cin.fail()) {
-        cin.clear();
-        cin.ignore(10000, '\n');
-        cout << "Invalid input! Use spaces only.\n";
-        break;
-    }
-    addProduct(id, name, qty, price);
-    break;
-
-            case 2: viewSortedProducts(); break;
-            case 3: displayLowStock(); break;
-            case 4:
-                cout << "Enter Product ID to search: "; cin >> id;
-                searchProduct(id);
-                break;
-            case 5:
-                cout << "Enter Product ID and new Quantity: "; cin >> id >> qty;
-                updateStock(id, qty);
-                break;
-            case 6:
-                saveToFile("inventory.txt");
-                cout << "Exiting...\n"; break;
-            default: cout << "Invalid choice!\n";
-        }
-    } while (choice != 6);
+.sidebar button:hover {
+    background: var(--accent);
 }
 
-   int main() {
-    loadFromFile("inventory.txt"); // load saved products first
-
-    // Optional: add test products if file is empty
-    if (productMap.empty()) {
-        addProduct(101, "Laptop", 10, 120000);
-        addProduct(102, "Mouse", 3, 1500);
-        addProduct(103, "Keyboard", 2, 3000);
-    }
-
-    cout << "Total products in inventory: " << productMap.size() << endl;
-
-    menu();
-    return 0;
+/* Main */
+.main {
+    padding: 32px;
 }
 
+.section {
+    display: none;
+}
 
+.section.active {
+    display: block;
+}
+
+.card {
+    background: var(--card);
+    padding: 24px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+}
+
+.card h2 {
+    margin-bottom: 16px;
+}
+
+/* Forms */
+input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    border: none;
+    background: #020617;
+    color: var(--text);
+}
+
+button.primary {
+    background: var(--accent);
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    border-bottom: 1px solid #374151;
+    text-align: left;
+}
+
+.low {
+    color: var(--danger);
+    font-weight: 600;
+}
+</style>
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <h1>Admin Portal</h1>
+        <button onclick="show('add')">Add Product</button>
+        <button onclick="show('inventory')">Sorted Inventory</button>
+        <button onclick="show('lowstock')">Low Stock</button>
+        <button onclick="show('search')">Search Product</button>
+        <button onclick="show('update')">Update Stock</button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+
+        <!-- Add Product -->
+        <div id="add" class="section active card">
+            <h2>Add Product</h2>
+            <input id="addId" placeholder="Product ID">
+            <input id="addName" placeholder="Name">
+            <input id="addQty" placeholder="Quantity">
+            <input id="addPrice" placeholder="Price">
+            <button class="primary" onclick="addProduct()">Add</button>
+        </div>
+
+        <!-- Inventory -->
+        <div id="inventory" class="section card">
+            <h2>Sorted Inventory</h2>
+            <table id="inventoryTable"></table>
+        </div>
+
+        <!-- Low Stock -->
+        <div id="lowstock" class="section card">
+            <h2>Low Stock Products</h2>
+            <table id="lowStockTable"></table>
+        </div>
+
+        <!-- Search -->
+        <div id="search" class="section card">
+            <h2>Search Product</h2>
+            <input id="searchId" placeholder="Enter Product ID">
+            <button class="primary" onclick="searchProduct()">Search</button>
+            <div id="searchResult"></div>
+        </div>
+
+        <!-- Update -->
+        <div id="update" class="section card">
+            <h2>Update Stock</h2>
+            <input id="updateId" placeholder="Product ID">
+            <input id="updateQty" placeholder="New Quantity">
+            <button class="primary" onclick="updateStock()">Update</button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+// ========================
+// Data Structures
+// ========================
+const productMap = new Map();
+
+// ========================
+// Persistence (File Handling)
+// ========================
+function save() {
+    localStorage.setItem("inventory", JSON.stringify([...productMap]));
+}
+
+function load() {
+    const data = JSON.parse(localStorage.getItem("inventory"));
+    if (data) data.forEach(([id, p]) => productMap.set(id, p));
+}
+
+// ========================
+// Core Logic
+// ========================
+function addProduct() {
+    const id = Number(addId.value);
+    if (productMap.has(id)) return alert("Product ID already exists");
+
+    productMap.set(id, {
+        id,
+        name: addName.value,
+        quantity: Number(addQty.value),
+        price: Number(addPrice.value)
+    });
+
+    save();
+    alert("Product added");
+}
+
+function sortedProducts() {
+    return [...productMap.values()].sort((a,b)=>a.name.localeCompare(b.name));
+}
+
+function lowStock() {
+    return [...productMap.values()].filter(p => p.quantity < 5);
+}
+
+function searchProduct() {
+    const p = productMap.get(Number(searchId.value));
+    searchResult.innerHTML = p
+        ? `ID: ${p.id}<br>Name: ${p.name}<br>Qty: ${p.quantity}<br>Price: ${p.price}`
+        : "Product not found";
+}
+
+function updateStock() {
+    const id = Number(updateId.value);
+    if (!productMap.has(id)) return alert("Product not found");
+    productMap.get(id).quantity = Number(updateQty.value);
+    save();
+    alert("Stock updated");
+}
+
+// ========================
+// UI Helpers
+// ========================
+function show(id) {
+    document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+
+    if (id === "inventory") renderInventory();
+    if (id === "lowstock") renderLowStock();
+}
+
+function renderInventory() {
+    inventoryTable.innerHTML = `
+        <tr><th>ID</th><th>Name</th><th>Qty</th><th>Price</th></tr>
+        ${sortedProducts().map(p=>`
+            <tr>
+                <td>${p.id}</td>
+                <td>${p.name}</td>
+                <td class="${p.quantity<5?'low':''}">${p.quantity}</td>
+                <td>${p.price}</td>
+            </tr>`).join("")}`;
+}
+
+function renderLowStock() {
+    lowStockTable.innerHTML = `
+        <tr><th>ID</th><th>Name</th><th>Qty</th></tr>
+        ${lowStock().map(p=>`
+            <tr>
+                <td>${p.id}</td>
+                <td>${p.name}</td>
+                <td class="low">${p.quantity}</td>
+            </tr>`).join("")}`;
+}
+
+// ========================
+// Init
+// ========================
+load();
+if (productMap.size === 0) {
+    addProductAuto(101,"Laptop",10,120000);
+    addProductAuto(102,"Mouse",3,1500);
+    addProductAuto(103,"Keyboard",2,3000);
+}
+
+function addProductAuto(id,name,qty,price){
+    productMap.set(id,{id,name,quantity:qty,price});
+    save();
+}
+</script>
+
+</body>
+</html>
