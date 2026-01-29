@@ -7,7 +7,7 @@ using namespace std;
 
 // ------------------------
 // Product Structure
-// ------------------------
+// -----------------------
 struct Product {
     int id;
     string name;
